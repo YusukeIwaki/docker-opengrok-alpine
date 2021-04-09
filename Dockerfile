@@ -1,16 +1,16 @@
-FROM openjdk:8-jre-alpine
+FROM adoptopenjdk/openjdk11:alpine
 
 RUN mkdir -p /opengrok/dist
-RUN wget https://github.com/oracle/opengrok/releases/download/1.3.1/opengrok-1.3.1.tar.gz \
-     && tar -C /opengrok/dist --strip-components=1 -xzf opengrok-1.3.1.tar.gz \
-     && rm opengrok-1.3.1.tar.gz
+RUN wget https://github.com/oracle/opengrok/releases/download/1.6.9/opengrok-1.6.9.tar.gz \
+     && tar -C /opengrok/dist --strip-components=1 -xzf opengrok-1.6.9.tar.gz \
+     && rm opengrok-1.6.9.tar.gz
 
 RUN mkdir /usr/local/tomcat
-RUN wget https://www-eu.apache.org/dist/tomcat/tomcat-9/v9.0.24/bin/apache-tomcat-9.0.24.tar.gz \
-     && tar -C /usr/local/tomcat --strip-components=1 -xzf apache-tomcat-9.0.24.tar.gz \
-     && rm apache-tomcat-9.0.24.tar.gz
+RUN wget https://www-eu.apache.org/dist/tomcat/tomcat-10/v10.0.5/bin/apache-tomcat-10.0.5.tar.gz \
+     && tar -C /usr/local/tomcat --strip-components=1 -xzf apache-tomcat-10.0.5.tar.gz \
+     && rm apache-tomcat-10.0.5.tar.gz
 
-RUN apk add --no-cache git ctags python3
+RUN apk add --no-cache git ctags python3 py3-pip
 RUN python3 -m pip install /opengrok/dist/tools/opengrok-tools.tar.gz
 
 # compile and install universal-ctags
@@ -30,7 +30,7 @@ ENV CATALINA_HOME /usr/local/tomcat
 ENV CATALINA_BASE /usr/local/tomcat
 ENV CATALINA_TMPDIR /usr/local/tomcat/temp
 ENV PATH $CATALINA_HOME/bin:$PATH
-ENV JRE_HOME /usr
+ENV JRE_HOME /opt/java/openjdk
 ENV CLASSPATH /usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar
 
 # custom deployment to / with redirect from /source
@@ -41,7 +41,7 @@ RUN rm -rf /usr/local/tomcat/webapps/* \
      && echo '<% response.sendRedirect("/"); %>' > "/usr/local/tomcat/webapps/source/index.jsp"
 
 # disable all file logging
-RUN wget https://raw.githubusercontent.com/oracle/opengrok/c78a27b2fd095cdc8e7f2064f64ce70acbbbbbc4/docker/logging.properties -O /usr/local/tomcat/conf/logging.properties
+RUN wget https://raw.githubusercontent.com/oracle/opengrok/476443edddbb606ccf738095d424034494b8dd71/docker/logging.properties -O /usr/local/tomcat/conf/logging.properties
 RUN sed -i -e 's/Valve/Disabled/' /usr/local/tomcat/conf/server.xml
 
 # indexing
